@@ -1,0 +1,135 @@
+@import "leaflet/dist/leaflet.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --dark: #161a1b;
+  --dark_overlay: #161a1b56;
+  --light: #4f5561;
+  --dark_red: #260303;
+  --dark_red_overlay: #260303be;
+  --red: #400606;
+  --off_white: #f2f2f2;
+  --white: #ffffff;
+
+  --md_br: 8px;
+  --sm_br: 4px;
+}
+
+hr {
+  color: #c2c2c2;
+}
+@layer components {
+  .card {
+    @apply bg-white rounded-rmd border border-gray-200 overflow-hidden transition-all duration-300 hover:shadow-md;
+  }
+
+  .card-header {
+    @apply px-6 py-4 bg-gradient-to-r from-dark_red to-red border-b border-gray-200;
+  }
+
+  .card-title {
+    @apply text-xl font-semibold text-white;
+  }
+
+  .custom-scrollbar {
+    @apply overflow-auto;
+    &::-webkit-scrollbar {
+      @apply w-1.5;
+    }
+    &::-webkit-scrollbar-track {
+      @apply bg-[#FFF5F5];
+    }
+    &::-webkit-scrollbar-thumb {
+      @apply bg-[#FFCDD2] hover:bg-[#EF5350] rounded-full transition-colors;
+    }
+  }
+  .btn {
+    @apply px-4 py-2 rounded-rsm font-medium transition-all duration-200;
+  }
+
+  .btn-primary {
+    @apply bg-dark_red text-white hover:bg-red;
+  }
+
+  .btn-secondary {
+    @apply bg-white text-dark_red border border-dark_red hover:bg-red hover:text-white;
+  }
+}
+.react-calendar {
+  width: 100% !important;
+  border: none !important;
+  background: white !important;
+  font-family: inherit !important;
+  padding: 1rem !important;
+}
+
+.react-calendar__tile--active {
+  background: var(--dark_red) !important;
+  color: white !important;
+}
+
+.react-calendar__tile:enabled:hover,
+.react-calendar__tile:enabled:focus {
+  background-color: var(--red) !important;
+  color: white !important;
+}
+
+/* Animation Classes */
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.4s ease-out;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out;
+}
+@keyframes scan {
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(100%);
+  }
+}
+
+.animate-scan {
+  animation: scan 2s linear infinite;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.5s ease-out;
+}
+
+.badge {
+  @apply px-3 py-1 rounded-full text-sm font-medium;
+}
+
+.status-select {
+  @apply rounded border-gray-300 text-sm p-1 bg-transparent;
+}

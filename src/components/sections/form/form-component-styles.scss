@@ -1,0 +1,34 @@
+.form-wrapper {
+  background: linear-gradient(to right, var(--dark) 0%, var(--dark) 100%),
+    url("../../../assets/images/black texturized hemocell blood bank.jpg")
+      center/cover no-repeat;
+  background-blend-mode: multiply;
+
+  animation: fadeup 1s ease-in-out forwards;
+  animation-delay: 0.5s;
+  transform: translateY(50px);
+  opacity: 0;
+
+  .contact-form {
+    input,
+    textarea {
+      &::placeholder {
+        color: rgba(255, 255, 255, 0.7);
+      }
+
+      &:disabled {
+        background-color: rgba(100, 100, 100, 0.8) !important;
+        color: white !important;
+        opacity: 0.9 !important;
+        cursor: not-allowed !important;
+      }
+    }
+  }
+}
+
+@keyframes fadeup {
+  to {
+    transform: translateY(0px);
+    opacity: 1;
+  }
+}

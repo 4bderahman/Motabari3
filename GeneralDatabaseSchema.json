@@ -1,0 +1,141 @@
+{
+    "collections": {
+      "NewUsers": {
+        "fields": {
+          "_id": "ObjectId",
+          "name": "String (required)",
+          "email": "String (required, unique)",
+          "phone": "String (required, unique)",
+          "password": "String (required, hashed)",
+          "userType": "String (required, enum: ['donor', 'hospital'])",
+          "date": "Date (default: Date.now)",
+          "source": "String (required)",
+          "age": "Number (required for donor)",
+          "bloodType": "String (required for donor, enum: ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'])",
+          "address": "String (required for hospital)",
+          "contactPerson": "String (required for hospital)",
+          "checked": "Number (default: 0)",
+          "donationHistory": [
+            {
+              "donationId": "ObjectId (ref: Donation)",
+              "date": "Date",
+              "bloodType": "String",
+              "status": "String (enum: ['pending', 'approved', 'completed'], default: 'pending')"
+            }
+          ],
+          "lastDonation": "Date",
+          "donations": [
+            {
+              "date": "Date (required)",
+              "units": "Number (required)",
+              "location": "String",
+              "status": "String (enum: ['pending', 'completed', 'cancelled'], default: 'completed')"
+            }
+          ],
+          "resetToken": "String",
+          "resetTokenExpiry": "Date"
+        },
+        "timestamps": true
+      },
+      "Donation": {
+        "fields": {
+          "_id": "ObjectId",
+          "donorId": "ObjectId (ref: NewUsers, required)",
+          "name": "String (required)",
+          "email": "String (required)",
+          "phone": "String (required)",
+          "bloodType": "String (required, enum: ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'])",
+          "date": "Date (required)",
+          "units": "Number (default: 450)",
+          "status": "String (enum: ['not_yet', 'donated'], default: 'not_yet')",
+          "message": "String"
+        },
+        "timestamps": true
+      },
+      "DonateBlood": {
+        "fields": {
+          "_id": "ObjectId",
+          "name": "String (required)",
+          "email": "String (required)",
+          "phone": "String (required)",
+          "bloodType": "String (required, enum: ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'])",
+          "message": "String",
+          "donated": "Boolean (default: false)",
+          "donorId": "ObjectId (ref: NewUsers)",
+          "date": "Date (required)"
+        },
+        "timestamps": true
+      },
+      "BloodRequest": {
+        "fields": {
+          "_id": "ObjectId",
+          "hospitalId": "ObjectId (ref: NewUsers, required)",
+          "hospitalName": "String (required)",
+          "bloodType": "String (required, enum: ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'])",
+          "units": "Number (required, min: 1)",
+          "urgency": "String (enum: ['urgent', 'normal'], default: 'normal')",
+          "status": "String (enum: ['pending', 'approved', 'rejected'], default: 'pending')",
+          "requestDate": "Date (default: Date.now)"
+        },
+        "timestamps": true
+      },
+      "NeedBlood": {
+        "fields": {
+          "_id": "ObjectId",
+          "userId": "ObjectId (ref: NewUsers, required)",
+          "patientName": "String (required)",
+          "bloodType": "String (required, enum: ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'])",
+          "units": "Number (required, min: 1)",
+          "urgency": "String (enum: ['urgent', 'normal'], default: 'normal')",
+          "hospital": "String (required)",
+          "location": "String (required)",
+          "contactNumber": "String (required)",
+          "status": "String (enum: ['pending', 'fulfilled', 'cancelled'], default: 'pending')",
+          "notes": "String",
+          "requestDate": "Date (default: Date.now)"
+        },
+        "timestamps": true
+      },
+      "NeedHelp": {
+        "fields": {
+          "_id": "ObjectId",
+          "name": "String (required)",
+          "phone": "String (required)",
+          "email": "String (required)",
+          "reason": "String (required)",
+          "answered": "Boolean (default: false)",
+          "message": "String"
+        },
+        "timestamps": true
+      },
+      "HostBloodDrive": {
+        "fields": {
+          "_id": "ObjectId",
+          "name": "String (required)",
+          "phone": "String (required)",
+          "email": "String (required)",
+          "institute": "String (required)",
+          "designation": "String (required)",
+          "city": "String (required)",
+          "done": "Boolean (default: false)",
+          "message": "String"
+        },
+        "timestamps": true
+      },
+      "BloodBank": {
+        "fields": {
+          "_id": "ObjectId",
+          "name": "String (required)",
+          "address": "String (required)",
+          "city": "String (required)",
+          "phone": "String (required)",
+          "email": "String (required)",
+          "latitude": "Number (required, min: -90, max: 90)",
+          "longitude": "Number (required, min: -180, max: 180)",
+          "availableBloodTypes": "Array of String (required, valid values: ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'])",
+          "isActive": "Boolean (default: true)"
+        },
+        "timestamps": true
+      }
+    }
+  }
