@@ -48,10 +48,7 @@ A comprehensive blood donation management system built with the MERN stack (Mong
 - `/server` - Express.js backend code
 - `/public` - Static assets
 
-## Contributors
 
-- Abderrahman (Frontend & Backend Development)
-- Yassine (Design & Frontend Development)
 
 ## License
 
