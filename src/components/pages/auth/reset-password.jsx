@@ -1,10 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import HeaderComponent from "../../sections/header/header-component";
 import FooterComponent from "../../sections/footer/footer-component";
 import Toast from "../../ui/Toast";
 import { BASE_URL } from "../../utility-functions/base-url";
+import PasswordStrengthIndicator from "../../ui/PasswordStrengthIndicator";
+import { validatePassword } from "../../../utility-functions/passwordValidation";
 
 const ResetPassword = () => {
   const { token } = useParams();
@@ -17,6 +19,25 @@ const ResetPassword = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [toast, setToast] = useState({ show: false, message: "", type: "" });
+  const [passwordValidation, setPasswordValidation] = useState({
+    isValid: false,
+    score: 0,
+    errorMessage: "",
+  });
+
+  // Validate password whenever it changes
+  useEffect(() => {
+    if (formData.password) {
+      const validation = validatePassword(formData.password);
+      setPasswordValidation(validation);
+    } else {
+      setPasswordValidation({
+        isValid: false,
+        score: 0,
+        errorMessage: "",
+      });
+    }
+  }, [formData.password]);
 
   const showToast = (message, type) => {
     setToast({ show: true, message, type });
@@ -30,8 +51,9 @@ const ResetPassword = () => {
       return;
     }
 
-    if (formData.password.length < 6) {
-      showToast("Password must be at least 6 characters long", "error");
+    // Stronger password validation
+    if (!passwordValidation.isValid) {
+      showToast(passwordValidation.errorMessage, "error");
       return;
     }
 
@@ -139,6 +161,7 @@ const ResetPassword = () => {
                   )}
                 </button>
               </div>
+              {formData.password && <PasswordStrengthIndicator password={formData.password} />}
             </div>
 
             <div>
@@ -205,6 +228,9 @@ const ResetPassword = () => {
                   )}
                 </button>
               </div>
+              {formData.password && formData.confirmPassword && formData.password !== formData.confirmPassword && (
+                <p className="text-xs text-red-600 mt-1">Passwords do not match</p>
+              )}
             </div>
 
             <button

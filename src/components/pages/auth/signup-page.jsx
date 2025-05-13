@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import HeaderComponent from "../../sections/header/header-component";
 import FooterComponent from "../../sections/footer/footer-component";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import Toast from "../../ui/Toast";
+import PasswordStrengthIndicator from "../../ui/PasswordStrengthIndicator";
+import { validatePassword } from "../../../utility-functions/passwordValidation";
 
 const SignupPage = () => {
   const [signupType, setSignupType] = useState("donor");
@@ -27,10 +29,29 @@ const SignupPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [passwordValidation, setPasswordValidation] = useState({
+    isValid: false,
+    score: 0,
+    errorMessage: "",
+  });
   const navigate = useNavigate();
   const [toast, setToast] = useState({ show: false, message: "", type: "" });
 
   const bloodTypes = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
+
+  // Validate password whenever it changes
+  useEffect(() => {
+    if (formData.password) {
+      const validation = validatePassword(formData.password);
+      setPasswordValidation(validation);
+    } else {
+      setPasswordValidation({
+        isValid: false,
+        score: 0,
+        errorMessage: "",
+      });
+    }
+  }, [formData.password]);
 
   const showToastMessage = (message, type) => {
     setToast({ show: true, message, type });
@@ -50,8 +71,9 @@ const SignupPage = () => {
       return;
     }
 
-    if (formData.password.length < 6) {
-      showToastMessage("Password must be at least 6 characters long", "error");
+    // Stronger password validation
+    if (!passwordValidation.isValid) {
+      showToastMessage(passwordValidation.errorMessage, "error");
       return;
     }
 
@@ -287,6 +309,7 @@ const SignupPage = () => {
                     )}
                   </button>
                 </div>
+                {formData.password && <PasswordStrengthIndicator password={formData.password} />}
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">
@@ -352,6 +375,9 @@ const SignupPage = () => {
                     )}
                   </button>
                 </div>
+                {formData.password && formData.confirmPassword && formData.password !== formData.confirmPassword && (
+                  <p className="text-xs text-red-600 mt-1">Passwords do not match</p>
+                )}
               </div>
             </>
           );
@@ -503,6 +529,7 @@ const SignupPage = () => {
                     )}
                   </button>
                 </div>
+                {formData.password && <PasswordStrengthIndicator password={formData.password} />}
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">
@@ -568,6 +595,9 @@ const SignupPage = () => {
                     )}
                   </button>
                 </div>
+                {formData.password && formData.confirmPassword && formData.password !== formData.confirmPassword && (
+                  <p className="text-xs text-red-600 mt-1">Passwords do not match</p>
+                )}
               </div>
             </>
           );

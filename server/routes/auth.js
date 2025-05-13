@@ -20,6 +20,57 @@ const router = express.Router();
 // Initialize Resend with API key from environment variables
 const resend = new Resend(process.env.RESEND_API_KEY);
 
+// Password validation function
+const validatePassword = (password) => {
+  // Check password length (minimum 8 characters)
+  const hasLength = password.length >= 8;
+  
+  // Check for uppercase letters
+  const hasUppercase = /[A-Z]/.test(password);
+  
+  // Check for lowercase letters
+  const hasLowercase = /[a-z]/.test(password);
+  
+  // Check for numbers
+  const hasNumber = /[0-9]/.test(password);
+  
+  // Check for special characters
+  const hasSpecial = /[^A-Za-z0-9]/.test(password);
+  
+  // Calculate strength score (0-5)
+  const score = [hasLength, hasUppercase, hasLowercase, hasNumber, hasSpecial].filter(Boolean).length;
+  
+  // Password must have a minimum score of 3 and must have minimum length
+  const isValid = score >= 3 && hasLength;
+  
+  // Generate error message if invalid
+  let errorMessage = "";
+  if (!isValid) {
+    errorMessage = "Password must:";
+    
+    if (!hasLength) {
+      errorMessage += " be at least 8 characters long;";
+    }
+    
+    const missingCriteria = [];
+    if (!hasUppercase) missingCriteria.push("an uppercase letter");
+    if (!hasLowercase) missingCriteria.push("a lowercase letter");
+    if (!hasNumber) missingCriteria.push("a number");
+    if (!hasSpecial) missingCriteria.push("a special character");
+    
+    if (missingCriteria.length > 0) {
+      errorMessage += ` include at least ${missingCriteria.length > 1 ? 
+        `${missingCriteria.slice(0, -1).join(', ')} and ${missingCriteria.slice(-1)}` : 
+        missingCriteria[0]};`;
+    }
+  }
+  
+  return {
+    isValid,
+    errorMessage
+  };
+};
+
 router.post("/insert-new-users", async (req, res) => {
   try {
     console.log("Received data:", req.body); // Debug log
@@ -48,6 +99,15 @@ router.post("/insert-new-users", async (req, res) => {
       return res.status(400).json({
         status: "error",
         message: "Missing required fields",
+      });
+    }
+
+    // Validate password strength
+    const passwordValidation = validatePassword(password);
+    if (!passwordValidation.isValid) {
+      return res.status(400).json({
+        status: "error",
+        message: passwordValidation.errorMessage,
       });
     }
 
@@ -340,6 +400,15 @@ router.post("/reset-password", async (req, res) => {
   try {
     const { token, password } = req.body;
     console.log("Attempting to reset password with token");
+
+    // Validate password strength
+    const passwordValidation = validatePassword(password);
+    if (!passwordValidation.isValid) {
+      return res.status(400).json({
+        status: "error",
+        message: passwordValidation.errorMessage,
+      });
+    }
 
     const user = await NewUsers.findOne({
       resetToken: token,
