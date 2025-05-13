@@ -25,7 +25,7 @@ const NeedBloodSchema = new Schema(
     },
     urgency: {
       type: String,
-      enum: ["urgent", "normal"],
+      enum: ["normal", "urgent", "critical"],
       default: "normal",
     },
     hospital: {

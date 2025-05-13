@@ -13,6 +13,7 @@ const FormComponent = ({
 }) => {
   const commonStyles = `block w-full flex justify-start items-start rounded-rsm border-0 px-8 py-3 md:px-10 md:py-4 text-white ring-none placeholder:text-white outline-none focus:ring-1 focus:ring-center focus:ring-light sm:text-sm sm:leading-6`;
   const enabledStyles = `bg-light focus:bg-dark`;
+  const selectStyles = `${commonStyles} ${enabledStyles} appearance-none bg-[url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='white' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E")] bg-no-repeat bg-right-4 bg-12`;
 
   // Debug log to see what formData is being received
   console.log("FormComponent received formData:", formData);
@@ -71,6 +72,64 @@ const FormComponent = ({
                       disabled={field.disabled}
                       style={disabledStyle}
                     />
+                  ) : field.type === "select" ? (
+                    <div className="relative">
+                      <select
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            [field.name]: e.target.value,
+                          })
+                        }
+                        value={fieldValue}
+                        name={field.name}
+                        id={field.name}
+                        className={`${selectStyles} ${
+                          field.name === "urgency" && fieldValue === "critical"
+                            ? "bg-red-700 border-red-500" 
+                            : field.name === "urgency" && fieldValue === "urgent"
+                            ? "bg-amber-700 border-amber-500"
+                            : ""
+                        }`}
+                        required={field.required}
+                        disabled={field.disabled}
+                        style={disabledStyle}
+                      >
+                        {field.options?.map((option) => {
+                          // Add color indicators for urgency levels
+                          let optionClass = "bg-dark text-white";
+                          if (field.name === "urgency") {
+                            if (option.value === "normal") {
+                              optionClass = "bg-dark text-white";
+                            } else if (option.value === "urgent") {
+                              optionClass = "bg-amber-700 text-white font-medium";
+                            } else if (option.value === "critical") {
+                              optionClass = "bg-red-700 text-white font-medium";
+                            }
+                          }
+                          
+                          return (
+                            <option 
+                              key={option.value} 
+                              value={option.value}
+                              className={optionClass}
+                            >
+                              {option.label}
+                            </option>
+                          );
+                        })}
+                      </select>
+                      {field.name === "urgency" && (
+                        <div className="absolute right-12 top-1/2 transform -translate-y-1/2 flex items-center">
+                          {fieldValue === "urgent" && (
+                            <div className="h-3 w-3 rounded-full bg-amber-500 mr-1 animate-pulse"></div>
+                          )}
+                          {fieldValue === "critical" && (
+                            <div className="h-3 w-3 rounded-full bg-red-500 mr-1 animate-pulse"></div>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   ) : (
                     <div className="relative">
                       <input
@@ -91,6 +150,8 @@ const FormComponent = ({
                         required={field.required}
                         disabled={field.disabled}
                         style={disabledStyle}
+                        min={field.min}
+                        max={field.max}
                       />
                     </div>
                   )}
@@ -121,6 +182,14 @@ FormComponent.propTypes = {
       placeholder: PropTypes.string,
       required: PropTypes.bool,
       disabled: PropTypes.bool,
+      options: PropTypes.arrayOf(
+        PropTypes.shape({
+          value: PropTypes.string.isRequired,
+          label: PropTypes.string.isRequired,
+        })
+      ),
+      min: PropTypes.number,
+      max: PropTypes.number,
     })
   ).isRequired,
   heading: PropTypes.string.isRequired,

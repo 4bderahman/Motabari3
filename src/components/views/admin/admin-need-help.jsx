@@ -34,11 +34,19 @@ export default function AdminNeedHelp() {
             name: item.name,
             email: item.email,
             phone: item.phone,
-            message: item.message,
-            done: item.done || false,
-            date: new Date(item.createdAt).toLocaleDateString(),
+            reason: item.reason || "",
+            message: item.message || "",
+            done: item.answered || false,
+            date: new Date(item.createdAt || Date.now()).toLocaleDateString(),
+            createdAt: item.createdAt || Date.now(),
           }));
-          setData(transformedData);
+          
+          // Sort data by createdAt in descending order (most recent first)
+          const sortedData = [...transformedData].sort((a, b) => {
+            return new Date(b.createdAt) - new Date(a.createdAt);
+          });
+          
+          setData(sortedData);
         } else {
           console.error("Error in response:", response.data);
         }
@@ -208,10 +216,11 @@ export default function AdminNeedHelp() {
     { id: 3, name: "Phone", value: "phone" },
     { id: 4, name: "Email", value: "email" },
     { id: 5, name: "Message", value: "message" },
-    { id: 6, name: "Done", value: "done" },
+    { id: 6, name: "Reason", value: "reason" },
+    { id: 7, name: "Done", value: "done" },
   ];
 
-  const tableHeader = ["Name", "Email", "Phone", "Message", "Done", "Actions"];
+  const tableHeader = ["Name", "Email", "Phone", "Reason", "Message", "Date", "Done", "Actions"];
 
   return (
     <>

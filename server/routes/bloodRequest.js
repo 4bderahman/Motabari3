@@ -4,6 +4,7 @@ import { authMiddleware } from "../middleware/auth.js";
 import { NewUsers } from "../models/newUsers.js";
 import { ObjectId } from "mongodb";
 import mongoose from "mongoose";
+import NeedBlood from "../models/needBlood.js";
 
 const router = express.Router();
 
@@ -65,24 +66,56 @@ router.get("/all", async (req, res) => {
       });
     }
 
-    const requests = await BloodRequest.find()
+    // Fetch requests from BloodRequest collection (hospital requests)
+    const hospitalRequests = await BloodRequest.find()
       .populate("hospitalId", "name")
       .sort({ createdAt: -1 });
 
-    // Transform data to match the display table format
-    const formattedRequests = requests.map((req) => ({
-      id: req._id.toString(), // Convert ID to string
+    // Format hospital requests
+    const formattedHospitalRequests = hospitalRequests.map((req) => ({
+      id: req._id.toString(),
       name: req.hospitalName || "Unknown Hospital",
-      bloodType: req.bloodType,
-      units: req.units,
-      urgency: req.urgency,
-      status: req.status,
+      bloodType: req.bloodType || "",
+      units: req.units || 1,
+      urgency: req.urgency || "normal",
+      status: req.status || "pending",
       date: req.createdAt,
+      source: "hospital",
+      collection: "bloodrequests"
     }));
+
+    // Fetch requests from NeedBlood collection (donor/public requests)
+    const donorRequests = await NeedBlood.find()
+      .populate("userId", "name email")
+      .sort({ createdAt: -1 });
+
+    // Format donor requests
+    const formattedDonorRequests = donorRequests.map((req) => ({
+      id: req._id.toString(),
+      name: req.patientName || (req.userId && req.userId.name) || "Unknown",
+      bloodType: req.bloodType || "",
+      units: req.units || 1,
+      urgency: req.urgency || "normal",
+      status: req.status || (req.given ? "fulfilled" : "pending"),
+      date: req.requestDate || req.createdAt,
+      source: "donor",
+      collection: "needbloods",
+      contactNumber: req.contactNumber || "",
+      hospital: req.hospital || "",
+      location: req.location || ""
+    }));
+
+    // Combine both sets of requests
+    const allRequests = [...formattedHospitalRequests, ...formattedDonorRequests];
+
+    // Sort by date (most recent first)
+    allRequests.sort((a, b) => new Date(b.date) - new Date(a.date));
+    
+    console.log("Sending blood requests with filter fields:", allRequests.length);
 
     res.json({
       status: "success",
-      data: formattedRequests,
+      data: allRequests,
     });
   } catch (error) {
     console.error("Error fetching blood requests:", error);
@@ -131,33 +164,70 @@ router.patch("/:requestId/status", async (req, res) => {
       });
     }
 
-    const request = await BloodRequest.findByIdAndUpdate(
-      req.params.requestId,
-      { status: req.body.status },
-      { new: true }
-    );
+    const { status, collection } = req.body;
+    const requestId = req.params.requestId;
+    let request;
 
-    if (!request) {
-      return res.status(404).json({
-        status: "error",
-        message: "Request not found",
-      });
+    // Handle based on which collection the request belongs to
+    if (collection === "needbloods") {
+      // For NeedBlood collection
+      request = await NeedBlood.findByIdAndUpdate(
+        requestId,
+        { 
+          status: status, 
+          given: status === "fulfilled" // Set given field for backward compatibility
+        },
+        { new: true }
+      ).populate("userId", "name email");
+
+      if (request) {
+        // Format response for NeedBlood
+        return res.json({
+          status: "success",
+          data: {
+            id: request._id.toString(),
+            name: request.patientName || (request.userId && request.userId.name) || "Unknown",
+            bloodType: request.bloodType,
+            units: request.units || 1,
+            urgency: request.urgency || "normal",
+            status: request.status,
+            date: request.requestDate || request.createdAt,
+            source: "donor",
+            collection: "needbloods"
+          }
+        });
+      }
+    } else {
+      // For BloodRequest collection (default)
+      request = await BloodRequest.findByIdAndUpdate(
+        requestId,
+        { status },
+        { new: true }
+      );
+
+      if (request) {
+        // Format response for BloodRequest
+        return res.json({
+          status: "success",
+          data: {
+            id: request._id.toString(),
+            name: request.hospitalName || "Unknown Hospital",
+            bloodType: request.bloodType,
+            units: request.units,
+            urgency: request.urgency,
+            status: request.status,
+            date: request.createdAt,
+            source: "hospital",
+            collection: "bloodrequests"
+          }
+        });
+      }
     }
 
-    // Transform the response to match the expected format
-    const formattedRequest = {
-      id: request._id.toString(),
-      name: request.hospitalName || "Unknown Hospital",
-      bloodType: request.bloodType,
-      units: request.units,
-      urgency: request.urgency,
-      status: request.status,
-      date: request.createdAt,
-    };
-
-    res.json({
-      status: "success",
-      data: formattedRequest,
+    // If no request was found in either collection
+    return res.status(404).json({
+      status: "error",
+      message: "Request not found",
     });
   } catch (error) {
     console.error("Status update error:", error);
@@ -243,9 +313,20 @@ router.delete("/:requestId", async (req, res) => {
       });
     }
 
-    const request = await BloodRequest.findByIdAndDelete(req.params.requestId);
+    const { collection } = req.query;
+    const requestId = req.params.requestId;
+    let result;
 
-    if (!request) {
+    // Handle based on which collection the request belongs to
+    if (collection === "needbloods") {
+      // For NeedBlood collection
+      result = await NeedBlood.findByIdAndDelete(requestId);
+    } else {
+      // For BloodRequest collection (default)
+      result = await BloodRequest.findByIdAndDelete(requestId);
+    }
+
+    if (!result) {
       return res.status(404).json({
         status: "error",
         message: "Request not found",
@@ -275,40 +356,77 @@ router.patch("/:requestId", async (req, res) => {
       });
     }
 
-    const request = await BloodRequest.findByIdAndUpdate(
-      req.params.requestId,
-      {
-        $set: {
-          bloodType: req.body.bloodType,
-          units: req.body.units,
-          urgency: req.body.urgency,
-          status: req.body.status,
-        },
-      },
-      { new: true }
-    );
+    const { collection } = req.body;
+    const requestId = req.params.requestId;
+    let request;
 
-    if (!request) {
-      return res.status(404).json({
-        status: "error",
-        message: "Request not found",
-      });
-    }
-
-    // Format response to match frontend requirements
-    const formattedRequest = {
-      id: request._id.toString(),
-      name: request.hospitalName || "Unknown Hospital",
-      bloodType: request.bloodType,
-      units: request.units,
-      urgency: request.urgency,
-      status: request.status,
-      date: request.createdAt,
+    // Updates common to both collections
+    const updateData = {
+      bloodType: req.body.bloodType,
+      units: req.body.units,
+      urgency: req.body.urgency,
+      status: req.body.status,
     };
 
-    res.json({
-      status: "success",
-      data: formattedRequest,
+    // Handle based on which collection the request belongs to
+    if (collection === "needbloods") {
+      // For NeedBlood collection
+      request = await NeedBlood.findByIdAndUpdate(
+        requestId,
+        { 
+          $set: updateData,
+          given: req.body.status === "fulfilled" // Set given field for backward compatibility
+        },
+        { new: true }
+      ).populate("userId", "name email");
+
+      if (request) {
+        // Format response for NeedBlood
+        return res.json({
+          status: "success",
+          data: {
+            id: request._id.toString(),
+            name: request.patientName || (request.userId && request.userId.name) || "Unknown",
+            bloodType: request.bloodType,
+            units: request.units || 1,
+            urgency: request.urgency || "normal",
+            status: request.status,
+            date: request.requestDate || request.createdAt,
+            source: "donor",
+            collection: "needbloods"
+          }
+        });
+      }
+    } else {
+      // For BloodRequest collection (default)
+      request = await BloodRequest.findByIdAndUpdate(
+        requestId,
+        { $set: updateData },
+        { new: true }
+      );
+
+      if (request) {
+        // Format response for BloodRequest
+        return res.json({
+          status: "success",
+          data: {
+            id: request._id.toString(),
+            name: request.hospitalName || "Unknown Hospital",
+            bloodType: request.bloodType,
+            units: request.units,
+            urgency: request.urgency,
+            status: request.status,
+            date: request.createdAt,
+            source: "hospital",
+            collection: "bloodrequests"
+          }
+        });
+      }
+    }
+
+    return res.status(404).json({
+      status: "error",
+      message: "Request not found",
     });
   } catch (error) {
     console.error("Update error:", error);

@@ -42,7 +42,13 @@ const Dashboard = () => {
       });
 
       if (response.data.status === "success") {
-        setData(response.data.data);
+        // Sort data by date in descending order (most recent first)
+        const sortedData = [...response.data.data].sort((a, b) => {
+          const dateA = new Date(a.createdAt || a.date || 0);
+          const dateB = new Date(b.createdAt || b.date || 0);
+          return dateB - dateA; // Descending order (most recent first)
+        });
+        setData(sortedData);
       }
     } catch (error) {
       console.error(

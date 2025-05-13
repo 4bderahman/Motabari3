@@ -6,7 +6,7 @@ const NeedHelpSchema = new Schema({
 	name: { type: String, required: true },
 	phone: { type: String, required: true },
 	email: { type: String, required: true },
-	reason: { type: String, required: true },
+	reason: { type: String, required: false },
 	answered: { type: Boolean, default: false },
 	message: { type: String },
 }, { timestamps: true });

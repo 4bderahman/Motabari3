@@ -102,6 +102,10 @@ const DisplayTableComponent = ({
           return "bg-indigo-100 text-indigo-800";
         case "signup":
           return "bg-violet-100 text-violet-800";
+        case "hospital":
+          return "bg-blue-100 text-blue-800";
+        case "donor":
+          return "bg-green-100 text-green-800";
         default:
           return "bg-gray-100 text-gray-800";
       }
@@ -128,11 +132,11 @@ const DisplayTableComponent = ({
             <td className="px-6 py-4 whitespace-nowrap">
               <select
                 value={item.status}
-                onChange={(e) => handleCheckboxChange(item.id, e.target.value)}
+                onChange={(e) => handleCheckboxChange(item.id, e.target.value, item.collection)}
                 className={`px-3 py-1 rounded-md text-sm font-medium border-0 focus:ring-2 focus:ring-blood appearance-none cursor-pointer ${
-                  item.status === "approved"
+                  item.status === "approved" || item.status === "fulfilled"
                     ? "bg-emerald-100 text-emerald-800"
-                    : item.status === "rejected"
+                    : item.status === "rejected" || item.status === "cancelled"
                     ? "bg-blood-100 text-blood-800"
                     : "bg-amber-100 text-amber-800"
                 }`}
@@ -147,7 +151,22 @@ const DisplayTableComponent = ({
                 <option value="rejected" className="bg-white text-gray-900">
                   Reject
                 </option>
+                {/* Support fulfilled status for needbloods collection */}
+                {item.collection === "needbloods" && (
+                  <option value="fulfilled" className="bg-white text-gray-900">
+                    Fulfilled
+                  </option>
+                )}
               </select>
+            </td>
+            <td className="px-6 py-4 whitespace-nowrap">
+              <span
+                className={`px-3 py-1 rounded-full text-sm font-medium ${getSourceStyles(
+                  item.source
+                )}`}
+              >
+                {item.source || "unknown"}
+              </span>
             </td>
             <td className="px-6 py-4 whitespace-nowrap">
               {new Date(item.date).toLocaleDateString()}
@@ -222,7 +241,12 @@ const DisplayTableComponent = ({
             <td className="px-6 py-4 whitespace-nowrap">{item.institute}</td>
             <td className="px-6 py-4 whitespace-nowrap">{item.designation}</td>
             <td className="px-6 py-4 whitespace-nowrap">{item.city}</td>
-            <td className="px-6 py-4 whitespace-nowrap">{item.message}</td>
+            <td className="px-6 py-4 whitespace-nowrap">
+              <div className="max-w-xs truncate" title={item.message}>
+                {item.message || "-"}
+              </div>
+            </td>
+            <td className="px-6 py-4 whitespace-nowrap">{item.date || "-"}</td>
             <td className="px-6 py-4 whitespace-nowrap">
               <select
                 value={item.done ? "yes" : "no"}
@@ -253,7 +277,13 @@ const DisplayTableComponent = ({
             <td className="px-6 py-4 whitespace-nowrap">{item.name}</td>
             <td className="px-6 py-4 whitespace-nowrap">{item.email}</td>
             <td className="px-6 py-4 whitespace-nowrap">{item.phone}</td>
-            <td className="px-6 py-4 whitespace-nowrap">{item.message}</td>
+            <td className="px-6 py-4 whitespace-nowrap">{item.reason || "-"}</td>
+            <td className="px-6 py-4 whitespace-nowrap">
+              <div className="max-w-xs truncate" title={item.message}>
+                {item.message || "-"}
+              </div>
+            </td>
+            <td className="px-6 py-4 whitespace-nowrap">{item.date || "-"}</td>
             <td className="px-6 py-4 whitespace-nowrap">
               <select
                 value={item.done ? "yes" : "no"}
@@ -291,20 +321,18 @@ const DisplayTableComponent = ({
     <td className="px-6 py-4 whitespace-nowrap">
       <div className="flex items-center gap-2">
         <button
+          title="Edit"
+          className="p-2 hover:bg-gray-100 rounded-rmd transition-colors"
           onClick={() => handleEdit(item)}
-          className="text-blue-600 hover:text-blue-900"
         >
-          <HiPencil className="h-5 w-5" />
+          <HiPencil className="w-4 h-4 text-dark" />
         </button>
         <button
-          onClick={() => {
-            if (window.confirm("Are you sure you want to delete this item?")) {
-              handleDelete(item.id);
-            }
-          }}
-          className="text-red-600 hover:text-red-900"
+          title="Delete"
+          className="p-2 hover:bg-blood-600 hover:text-white rounded-rmd transition-colors"
+          onClick={() => handleDelete(item.id, item.collection)} 
         >
-          <RxCrossCircled className="h-5 w-5" />
+          <RxCrossCircled className="w-4 h-4" />
         </button>
       </div>
     </td>

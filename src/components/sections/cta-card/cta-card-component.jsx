@@ -68,7 +68,7 @@ CardStats.defaultProps = {
 	statArrow: "up",
 	statPercent: "3.48",
 	statPercentColor: "text-emerald-500",
-	statDescripiron: "Since last 24 hours",
+	statDescripiron: "Since last month",
 	statIconName: "far fa-chart-bar",
 	statIconColor: "bg-red-500",
 };

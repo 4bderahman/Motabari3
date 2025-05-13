@@ -81,7 +81,14 @@ export default function AdminDonateBlood() {
         });
 
         if (response.data.status === "success") {
-          setData(response.data.data);
+          // Sort data by createdAt/date in descending order (most recent first)
+          const sortedData = [...response.data.data].sort((a, b) => {
+            // Use createdAt if available, otherwise use date field
+            const dateA = new Date(a.createdAt || a.date || 0);
+            const dateB = new Date(b.createdAt || b.date || 0);
+            return dateB - dateA; // Descending order (most recent first)
+          });
+          setData(sortedData);
         }
       } catch (error) {
         console.error(
@@ -92,6 +99,11 @@ export default function AdminDonateBlood() {
     };
 
     fetchData();
+    // Set up an interval to fetch data every 30 seconds
+    const interval = setInterval(fetchData, 30000);
+    
+    // Clean up the interval when the component unmounts
+    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {

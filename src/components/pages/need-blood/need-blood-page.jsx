@@ -10,6 +10,7 @@ import HeaderComponent from "../../sections/header/header-component";
 import BeforeFooterCTA from "../../sections/before-footer-cta/before-footer-cta-components";
 import FooterComponent from "../../sections/footer/footer-component";
 import { getUser } from "../../../utility-functions/auth-utils.js";
+import Toast from "../../ui/Toast";
 
 import Axios from "axios";
 import newUsersInsertRequest from "../../utility-functions/new-users-insert-request.jsx";
@@ -22,8 +23,15 @@ const NeedBloodPage = () => {
     phone: "",
     bloodType: "",
     message: "",
+    units: 1, // Default to 1 unit
+    urgency: "normal", // Default urgency level
   });
   const [status, setStatus] = useState("Pending");
+  const [toast, setToast] = useState({ show: false, message: "", type: "" });
+
+  const showToast = (message, type) => {
+    setToast({ show: true, message, type });
+  };
 
   useEffect(() => {
     const user = getUser();
@@ -41,6 +49,8 @@ const NeedBloodPage = () => {
         email: user.email || "",
         phone: user.phone || "",
         bloodType: user.bloodType || "",
+        units: 1, // Default to 1 unit
+        urgency: "normal", // Default urgency level
       });
     } else {
       console.log("No token found, redirecting to login");
@@ -50,6 +60,25 @@ const NeedBloodPage = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    // Basic validation
+    if (!formData.name || !formData.phone || !formData.bloodType || !formData.units) {
+      showToast("Please fill in all required fields", "error");
+      return;
+    }
+
+    // Validate units is a positive number
+    if (formData.units < 1) {
+      showToast("Units must be at least 1", "error");
+      return;
+    }
+    
+    // Get user and token
+    const user = getUser();
+    if (!user || !user.token) {
+      showToast("Authentication error. Please log in again.", "error");
+      return;
+    }
 
     setStatus("Submited");
 
@@ -61,13 +90,21 @@ const NeedBloodPage = () => {
       phone: formData.phone,
       bloodType: formData.bloodType,
       message: formData.message,
+      units: parseInt(formData.units, 10), // Ensure units is sent as a number
+      urgency: formData.urgency, // Include urgency in the request
+    }, {
+      headers: {
+        Authorization: `Bearer ${user.token}`
+      }
     })
       .then((response) => {
         console.log("success");
         console.log(response.data);
+        showToast("Blood request submitted successfully!", "success");
       })
       .catch((error) => {
         console.log(error);
+        showToast("Error submitting request. Please try again.", "error");
       });
 
     newUsersInsertRequest(formData, "need-blood");
@@ -78,6 +115,8 @@ const NeedBloodPage = () => {
       phone: "",
       bloodType: "",
       message: "",
+      units: 1,
+      urgency: "normal",
     });
   };
 
@@ -87,7 +126,7 @@ const NeedBloodPage = () => {
       quoteText: `Facing a blood emergency?\n 
             Request a callback and let us help you!`,
       buttonText: "Call Now",
-      buttonLink: "tel:+920304050607",
+      buttonLink: "tel:+212772183479",
       buttonHave: true,
     },
     tips_for_managing_blood_loss: {
@@ -171,8 +210,47 @@ const NeedBloodPage = () => {
     {
       key: "bloodType",
       name: "bloodType",
-      type: "text",
+      type: "select", // Changed to select for dropdown
       placeholder: "Blood Type",
+      required: true,
+      options: [
+        { value: "", label: "Select Blood Type" },
+        { value: "A+", label: "A+" },
+        { value: "A-", label: "A-" },
+        { value: "B+", label: "B+" },
+        { value: "B-", label: "B-" },
+        { value: "AB+", label: "AB+" },
+        { value: "AB-", label: "AB-" },
+        { value: "O+", label: "O+" },
+        { value: "O-", label: "O-" },
+      ],
+    },
+    {
+      key: "urgency",
+      name: "urgency",
+      type: "select",
+      placeholder: "Urgency Level",
+      required: true,
+      options: [
+        { value: "normal", label: "Normal - Within a few days" },
+        { value: "urgent", label: "Urgent - Within 24 hours" },
+        { value: "critical", label: "Critical - Immediate need" },
+      ],
+    },
+    {
+      key: "units",
+      name: "units",
+      type: "number",
+      placeholder: "Units Needed",
+      required: true,
+      min: 1,
+      max: 10,
+    },
+    {
+      key: "message",
+      name: "message",
+      type: "textarea",
+      placeholder: "Additional notes or requirements",
       required: false,
     },
   ];
@@ -191,6 +269,13 @@ const NeedBloodPage = () => {
         setFormData={setFormData}
         status={status}
       />
+      {toast.show && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast({ ...toast, show: false })}
+        />
+      )}
       <QuoteComponent {...NeedBloodPageDetails.quote} />
       <SearchBloodStockComponent {...NeedBloodPageDetails.bloodStock} />
       <ThreeStepProcessComponent

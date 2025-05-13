@@ -196,6 +196,13 @@ const HostBloodDrivePage = () => {
       placeholder: "City",
       required: true,
     },
+    {
+      key: "message",
+      name: "message",
+      type: "textarea",
+      placeholder: "Additional information or requirements",
+      required: false,
+    },
   ];
 
   return (

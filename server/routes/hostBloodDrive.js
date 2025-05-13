@@ -20,6 +20,8 @@ router.get("/", async (req, res) => {
       city: drive.city,
       done: drive.done,
       message: drive.message,
+      date: new Date(drive.createdAt || Date.now()).toLocaleDateString(),
+      createdAt: drive.createdAt,
     }));
     res.json({
       status: "success",
@@ -61,6 +63,8 @@ router.patch("/:id/status", async (req, res) => {
       city: drive.city,
       done: drive.done,
       message: drive.message,
+      date: new Date(drive.createdAt || Date.now()).toLocaleDateString(),
+      createdAt: drive.createdAt,
     }));
 
     res.json({
@@ -104,6 +108,8 @@ router.put("/update/:id", async (req, res) => {
       city: drive.city,
       done: drive.done,
       message: drive.message,
+      date: new Date(drive.createdAt || Date.now()).toLocaleDateString(),
+      createdAt: drive.createdAt,
     }));
 
     res.json({
@@ -143,6 +149,8 @@ router.delete("/delete/:id", async (req, res) => {
       city: drive.city,
       done: drive.done,
       message: drive.message,
+      date: new Date(drive.createdAt || Date.now()).toLocaleDateString(),
+      createdAt: drive.createdAt,
     }));
 
     res.json({

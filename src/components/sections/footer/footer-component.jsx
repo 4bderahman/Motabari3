@@ -30,10 +30,7 @@ const FooterComponent = () => {
       title: "Admin Dashboard",
       link: "/admin/login",
     },
-    {
-      title: "Donor Dashboard",
-      link: "/donor-dashboard",
-    },
+    
   ];
 
   const contactLinks = [

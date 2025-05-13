@@ -21,6 +21,7 @@ import hostBloodDriveRoutes from "./routes/hostBloodDrive.js";
 import needHelpRoutes from "./routes/needHelp.js";
 import { QRCode } from "./models/QRCode.js";
 import donationsRoutes from "./routes/donations.js";
+import { BloodRequest } from "./models/bloodRequest.js";
 
 dotenv.config();
 
@@ -180,41 +181,150 @@ app.post("/create-host-blood-drive", (req, res) => {
 });
 
 // for inserting NEED BLOOD page form data
-app.post("/create-need-blood", (req, res) => {
-  const name = req.body.name;
-  const phone = req.body.phone;
-  const email = req.body.email;
-  const bloodType = req.body.bloodType;
-  const message = req.body.message;
+app.post("/create-need-blood", authMiddleware, async (req, res) => {
+  try {
+    // Extract data from the frontend form with its current field names
+    const { name, email, phone, bloodType, message, units, urgency } = req.body;
+    const userId = req.user._id; // Get userId from the authenticated user
+    
+    // Get user details for hospital name and user type
+    const user = await NewUsers.findById(userId).lean();
+    if (!user) {
+      return res.status(404).json({
+        status: "error",
+        message: "User not found",
+      });
+    }
 
-  const needBlood = new NeedBlood({
-    name,
-    phone,
-    email,
-    bloodType,
-    message,
-  });
+    // Basic validation
+    if (!name || !phone || !bloodType) {
+      return res.status(400).json({
+        status: "error",
+        message: "Missing required fields",
+      });
+    }
 
-  needBlood.save().then(() => res.json("Need Blood Added!"));
+    // Check if units is a valid number
+    const bloodUnits = parseInt(units, 10) || 1; // Default to 1 if not provided or invalid
+    if (bloodUnits < 1) {
+      return res.status(400).json({
+        status: "error",
+        message: "Units must be at least 1",
+      });
+    }
+
+    // Validate urgency level
+    const validUrgency = urgency || "normal"; // Default to normal if not provided
+    const validUrgencyLevels = ["normal", "urgent", "critical"];
+    if (!validUrgencyLevels.includes(validUrgency)) {
+      return res.status(400).json({
+        status: "error",
+        message: "Invalid urgency level",
+      });
+    }
+
+    // Determine user type and create request in appropriate collection
+    const userType = user.userType || "donor"; // Default to donor if not specified
+    let savedRequest;
+
+    if (userType === "hospital") {
+      // For hospital users, create request in BloodRequest collection
+      const bloodRequest = new BloodRequest({
+        hospitalId: userId,
+        hospitalName: user.name || "Unknown Hospital",
+        bloodType: bloodType,
+        units: bloodUnits,
+        urgency: validUrgency, // Use the validated urgency level
+        status: "pending"
+      });
+
+      savedRequest = await bloodRequest.save();
+      
+      res.status(201).json({
+        status: "success",
+        message: "Hospital blood request created successfully!",
+        data: {
+          bloodRequest: savedRequest
+        }
+      });
+    } else {
+      // For donor/regular users, create request in NeedBlood collection
+      const needBlood = new NeedBlood({
+        userId: userId,
+        patientName: name, // Map name to patientName
+        bloodType: bloodType,
+        units: bloodUnits, // Use parsed units
+        hospital: user.name || "Not specified", // Use user's name as hospital
+        location: "Not specified", // Default value
+        contactNumber: phone, // Map phone to contactNumber
+        notes: message, // Map message to notes
+        urgency: validUrgency, // Use the validated urgency level
+        source: "donor" // Explicitly mark as donor source
+      });
+
+      savedRequest = await needBlood.save();
+      
+      res.status(201).json({
+        status: "success",
+        message: "Donor blood request created successfully!",
+        data: {
+          needBlood: savedRequest
+        }
+      });
+    }
+  } catch (error) {
+    console.error("Error creating Need Blood request:", error);
+    // Handle validation errors
+    if (error.name === "ValidationError") {
+      return res.status(400).json({
+        status: "error",
+        message: "Validation failed: " + error.message,
+        errors: error.errors,
+      });
+    }
+    // Handle other errors
+    res.status(500).json({
+      status: "error",
+      message: error.message || "Failed to create Need Blood request",
+    });
+  }
 });
 
 // for inserting NEED HELP page form data
-app.post("/create-need-help", (req, res) => {
-  const name = req.body.name;
-  const phone = req.body.phone;
-  const email = req.body.email;
-  const reason = req.body.reason;
-  const message = req.body.message;
+app.post("/create-need-help", async (req, res) => {
+  try {
+    const { name, phone, email, reason, message } = req.body;
 
-  const needHelp = new NeedHelp({
-    name,
-    phone,
-    email,
-    reason,
-    message,
-  });
+    // Basic validation
+    if (!name || !phone || !email) {
+      return res.status(400).json({
+        status: "error",
+        message: "Missing required fields (name, phone, email)",
+      });
+    }
 
-  needHelp.save().then(() => res.json("Need Help Added!"));
+    const needHelp = new NeedHelp({
+      name,
+      phone,
+      email,
+      reason: reason || "", // Default to empty string if not provided
+      message: message || "",
+    });
+
+    const savedNeedHelp = await needHelp.save();
+    
+    res.status(201).json({
+      status: "success",
+      message: "Help request submitted successfully",
+      data: savedNeedHelp
+    });
+  } catch (error) {
+    console.error("Error creating help request:", error);
+    res.status(500).json({
+      status: "error",
+      message: error.message || "Failed to create help request",
+    });
+  }
 });
 
 // ========================================
@@ -251,34 +361,40 @@ app.get("/api/stats", authMiddleware, async (req, res) => {
   try {
     console.log("Received stats request");
     const now = new Date();
-    const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-    const fortyEightHoursAgo = new Date(now.getTime() - 48 * 60 * 60 * 1000);
+    
+    // Calculate dates for current month
+    const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    
+    // Calculate dates for previous month
+    const prevMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const prevMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
 
     console.log("Dates:", {
       now: now.toISOString(),
-      twentyFourHoursAgo: twentyFourHoursAgo.toISOString(),
-      fortyEightHoursAgo: fortyEightHoursAgo.toISOString(),
+      currentMonthStart: currentMonthStart.toISOString(),
+      prevMonthStart: prevMonthStart.toISOString(),
+      prevMonthEnd: prevMonthEnd.toISOString()
     });
 
-    // Get current period counts (last 24 hours)
+    // Get current month counts
     const [donateBloodCount, needBloodCount, hostDriveCount, needHelpCount] =
       await Promise.all([
-        DonateBlood.countDocuments({ createdAt: { $gte: twentyFourHoursAgo } }),
-        NeedBlood.countDocuments({ createdAt: { $gte: twentyFourHoursAgo } }),
+        DonateBlood.countDocuments({ createdAt: { $gte: currentMonthStart } }),
+        NeedBlood.countDocuments({ createdAt: { $gte: currentMonthStart } }),
         HostBloodDrive.countDocuments({
-          createdAt: { $gte: twentyFourHoursAgo },
+          createdAt: { $gte: currentMonthStart },
         }),
-        NeedHelp.countDocuments({ createdAt: { $gte: twentyFourHoursAgo } }),
+        NeedHelp.countDocuments({ createdAt: { $gte: currentMonthStart } }),
       ]);
 
-    console.log("Current period counts:", {
+    console.log("Current month counts:", {
       donateBloodCount,
       needBloodCount,
       hostDriveCount,
       needHelpCount,
     });
 
-    // Get previous period counts (24-48 hours ago)
+    // Get previous month counts
     const [
       prevDonateBloodCount,
       prevNeedBloodCount,
@@ -286,20 +402,20 @@ app.get("/api/stats", authMiddleware, async (req, res) => {
       prevNeedHelpCount,
     ] = await Promise.all([
       DonateBlood.countDocuments({
-        createdAt: { $gte: fortyEightHoursAgo, $lt: twentyFourHoursAgo },
+        createdAt: { $gte: prevMonthStart, $lte: prevMonthEnd },
       }),
       NeedBlood.countDocuments({
-        createdAt: { $gte: fortyEightHoursAgo, $lt: twentyFourHoursAgo },
+        createdAt: { $gte: prevMonthStart, $lte: prevMonthEnd },
       }),
       HostBloodDrive.countDocuments({
-        createdAt: { $gte: fortyEightHoursAgo, $lt: twentyFourHoursAgo },
+        createdAt: { $gte: prevMonthStart, $lte: prevMonthEnd },
       }),
       NeedHelp.countDocuments({
-        createdAt: { $gte: fortyEightHoursAgo, $lt: twentyFourHoursAgo },
+        createdAt: { $gte: prevMonthStart, $lte: prevMonthEnd },
       }),
     ]);
 
-    console.log("Previous period counts:", {
+    console.log("Previous month counts:", {
       prevDonateBloodCount,
       prevNeedBloodCount,
       prevHostDriveCount,
@@ -390,15 +506,19 @@ app.get("/api/donate-blood", authMiddleware, async (req, res) => {
 // for getting NEED BLOOD table data
 app.get("/api/need-blood", authMiddleware, async (req, res) => {
   try {
-    const needs = await NeedBlood.find().lean();
+    const needs = await NeedBlood.find().lean().populate('userId', 'name email');
     const formattedNeeds = needs.map((need) => ({
       id: need._id.toString(),
-      name: need.name,
-      phone: need.phone,
-      email: need.email,
+      name: need.patientName || (need.userId && need.userId.name) || "Unknown",  // Use patientName first, then userId.name
+      phone: need.contactNumber || need.phone || "Unknown",  // Use contactNumber or legacy phone field
+      email: (need.userId && need.userId.email) || need.email || "Unknown",  // Use userId.email or legacy email field
       bloodType: need.bloodType,
-      given: need.given,
-      message: need.message,
+      given: need.status === "fulfilled" || need.given || false,  // Check both new and old status fields
+      message: need.notes || need.message || "",  // Use notes or legacy message field
+      units: need.units || 1,
+      hospital: need.hospital || "Not specified",
+      location: need.location || "Not specified",
+      urgency: need.urgency || "normal",
     }));
     res.json({
       status: "success",
@@ -450,9 +570,10 @@ app.get("/api/need-help", authMiddleware, async (req, res) => {
       name: help.name,
       phone: help.phone,
       email: help.email,
-      reason: help.reason,
+      reason: help.reason || "",
       answered: help.answered,
-      message: help.message,
+      message: help.message || "",
+      createdAt: help.createdAt,
     }));
     res.json({
       status: "success",
@@ -473,11 +594,19 @@ app.get("/api/need-help", authMiddleware, async (req, res) => {
 // for updating NEED BLOOD table `given` value
 app.put("/api/need-blood/given", authMiddleware, async (req, res) => {
   const id = req.body.id;
-  const given = req.body.status;
+  const given = req.body.status; // This is a boolean value from the request
+  
   try {
+    // Convert the boolean 'given' value to a status string
+    const status = given ? "fulfilled" : "pending";
+    
+    // Update both old and new status fields for compatibility
     const updatedNeed = await NeedBlood.findOneAndUpdate(
       { _id: new ObjectId(id) },
-      { given },
+      { 
+        given: given, // For backward compatibility
+        status: status // New field from the updated schema
+      },
       { new: true }
     ).lean();
 
@@ -488,11 +617,13 @@ app.put("/api/need-blood/given", authMiddleware, async (req, res) => {
       });
     }
 
+    // Format the response with the required fields for the UI
     res.json({
       status: "success",
       data: {
         ...updatedNeed,
         id: updatedNeed._id.toString(),
+        given: updatedNeed.status === "fulfilled" || updatedNeed.given || false,
       },
     });
   } catch (err) {
@@ -1143,3 +1274,73 @@ app.get("/", (req, res) => res.send("Welocome to motabari3!"));
 app.listen(port, () => console.log(`Yee! app listening on port ${port}!`));
 
 console.log("QRCode Model:", QRCode.modelName);
+
+// Get all blood requests (admin only)
+app.get("/api/blood-requests/all", async (req, res) => {
+  try {
+    if (req.user.userType !== "admin") {
+      return res.status(403).json({
+        status: "error",
+        message: "Admin access required",
+      });
+    }
+
+    // Fetch requests from BloodRequest collection (hospital requests)
+    const hospitalRequests = await BloodRequest.find()
+      .populate("hospitalId", "name")
+      .sort({ createdAt: -1 });
+
+    // Format hospital requests
+    const formattedHospitalRequests = hospitalRequests.map((req) => ({
+      id: req._id.toString(),
+      name: req.hospitalName || "Unknown Hospital",
+      bloodType: req.bloodType,
+      units: req.units || 1,
+      urgency: req.urgency || "normal",
+      status: req.status || "pending",
+      date: req.createdAt,
+      source: "hospital",
+      collection: "bloodrequests"
+    }));
+
+    // Fetch requests from NeedBlood collection (donor/public requests)
+    const donorRequests = await NeedBlood.find()
+      .populate("userId", "name email")
+      .sort({ createdAt: -1 });
+
+    // Format donor requests with consistent fields
+    const formattedDonorRequests = donorRequests.map((req) => ({
+      id: req._id.toString(),
+      name: req.patientName || (req.userId && req.userId.name) || "Unknown",
+      bloodType: req.bloodType,
+      units: req.units || 1,
+      urgency: req.urgency || "normal",
+      status: req.status || (req.given ? "fulfilled" : "pending"),
+      date: req.requestDate || req.createdAt,
+      source: "donor",
+      collection: "needbloods",
+      contactNumber: req.contactNumber,
+      hospital: req.hospital,
+      location: req.location
+    }));
+
+    // Combine both sets of requests
+    const allRequests = [...formattedHospitalRequests, ...formattedDonorRequests];
+
+    // Sort by date (most recent first)
+    allRequests.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    console.log("Sending all blood requests:", allRequests.length);
+    
+    res.json({
+      status: "success",
+      data: allRequests,
+    });
+  } catch (error) {
+    console.error("Error fetching blood requests:", error);
+    res.status(500).json({
+      status: "error",
+      message: error.message,
+    });
+  }
+});

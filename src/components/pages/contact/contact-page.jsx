@@ -118,6 +118,13 @@ const ContactPage = () => {
       placeholder: "Reason",
       required: false,
     },
+    {
+      key: "message",
+      name: "message",
+      type: "textarea",
+      placeholder: "Your message",
+      required: false,
+    },
   ];
 
   const contactDetails = [
