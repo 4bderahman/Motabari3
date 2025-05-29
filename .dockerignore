@@ -43,8 +43,8 @@ logs
 tmp
 temp
 
-# Ignore package-lock.json for Docker builds (we'll use npm ci)
-package-lock.json
+# Keep package-lock.json for faster and more reliable builds
+# package-lock.json
 
 # Ignore server directory in frontend build
 server
