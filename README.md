@@ -48,8 +48,9 @@ A comprehensive blood donation management system built with the MERN stack (Mong
 - `/server` - Express.js backend code
 - `/public` - Static assets
 
+## Admin Access
 
+Default admin credentials:
+- Email: admin@motabari3.com
+- Password: Admin@123
 
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.

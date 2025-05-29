@@ -22,6 +22,7 @@ import needHelpRoutes from "./routes/needHelp.js";
 import { QRCode } from "./models/QRCode.js";
 import donationsRoutes from "./routes/donations.js";
 import { BloodRequest } from "./models/bloodRequest.js";
+import healthRoutes from "./health.js";
 
 dotenv.config();
 
@@ -60,6 +61,9 @@ app.use("/api/need-help", authMiddleware, needHelpRoutes);
 
 // Add donations routes
 app.use("/api/donations", donationsRoutes);
+
+// Add health check route
+app.use("/api", healthRoutes);
 
 const connectionString = `${process.env.CONNECTION_STRING}`;
 
