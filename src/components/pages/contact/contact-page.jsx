@@ -132,8 +132,8 @@ const ContactPage = () => {
       key: "phone",
       stepNumber: <FaPhoneAlt />,
       stepName: "Phone",
-      stepDescription: "(+92)-333-123-4567",
-      stepUrl: "tel:+923331234567",
+      stepDescription: "(+212)66666666",
+      stepUrl: "tel:+21266666666",
     },
     {
       key: "email",
@@ -146,8 +146,8 @@ const ContactPage = () => {
       key: "address",
       stepNumber: <FaMapMarkerAlt />,
       stepName: "Address",
-      stepDescription: "Karachi, Sindh, Pakistan",
-      stepUrl: "https://goo.gl/maps/sszR4K9aDKuYfy2Y8",
+      stepDescription: "Marrakech, Morocco",
+      stepUrl: "https://maps.app.goo.gl/id3GMTsemwZdg2E47",
     },
   ];
 

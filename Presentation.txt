@@ -1,0 +1,130 @@
+Slide 1 : Motabari3 - Plateforme Intelligente de Gestion des Dons de Sang
+  • Connecter les donneurs, les hôpitaux et les banques de sang pour sauver des vies
+  • Une solution numérique complète pour optimiser la chaîne d'approvisionnement en sang
+
+Notes orateur : Bonjour à tous. Aujourd'hui, nous vous présentons Motabari3, une solution innovante qui révolutionne la gestion des dons de sang au Maroc.
+
+Slide 2 : Le Problème
+  • Pénurie chronique de sang dans les hôpitaux marocains
+  • Manque de coordination entre donneurs et établissements de santé
+  • Processus de don manuel et inefficace
+  • Difficulté à mobiliser les donneurs en cas d'urgence
+  • Absence de traçabilité des dons et des besoins
+
+Notes orateur : Le système actuel de don de sang souffre de nombreuses inefficacités qui mettent des vies en danger quotidiennement.
+
+Slide 3 : Notre Solution
+  • Plateforme web centralisée connectant donneurs, hôpitaux et banques de sang
+  • Système de gestion des rendez-vous et suivi des dons
+  • Alertes en temps réel pour les besoins urgents
+  • Vérification par QR code pour une identification rapide des donneurs
+  • Interface intuitive adaptée à tous les utilisateurs
+
+Notes orateur : Motabari3 est une solution complète qui digitalise l'ensemble du processus de don de sang, de l'inscription du donneur jusqu'à l'utilisation du sang par les hôpitaux.
+
+Slide 4 : Architecture Technique
+  • Frontend : React.js avec TailwindCSS pour une interface responsive
+  • Backend : Node.js et Express.js pour une API robuste et évolutive
+  • Base de données : MongoDB pour une gestion flexible des données
+  • Authentification : JWT pour une sécurité optimale
+  • Technologie QR Code : html5-qrcode et jsQR pour la vérification des donneurs
+
+Notes orateur : Notre architecture MERN (MongoDB, Express, React, Node.js) offre performance, sécurité et évolutivité.
+
+Slide 5 : Fonctionnalités Clés - Donneurs
+  • Inscription et profil personnel avec historique des dons
+  • Prise de rendez-vous en ligne pour les dons
+  • QR code personnel pour identification rapide
+  • Notifications de compatibilité avec les besoins urgents
+  • Tableau de bord personnalisé pour suivre son impact
+
+Notes orateur : L'expérience donneur est au cœur de notre solution, avec un parcours simplifié et valorisant.
+
+Slide 6 : Fonctionnalités Clés - Hôpitaux
+  • Gestion des demandes de sang par type et urgence
+  • Visualisation en temps réel des stocks disponibles
+  • Communication directe avec les banques de sang
+  • Suivi des transfusions et des résultats
+  • Statistiques d'utilisation et prévisions des besoins
+
+Notes orateur : Les hôpitaux bénéficient d'un outil puissant pour optimiser leur gestion des ressources sanguines.
+
+Slide 7 : Fonctionnalités Clés - Administration
+  • Tableau de bord complet avec statistiques en temps réel
+  • Gestion des campagnes de don et événements
+  • Supervision des banques de sang et des stocks
+  • Rapports analytiques sur les tendances de don
+  • Gestion des utilisateurs et des permissions
+
+Notes orateur : Le module administratif permet une supervision complète du système et facilite la prise de décision.
+
+Slide 8 : Avantages Concurrentiels
+  • Première solution complète de gestion de don de sang au Maroc
+  • Technologie QR code pour une identification rapide et sécurisée
+  • Système d'alerte intelligent basé sur la proximité et la compatibilité
+  • Interface multilingue (arabe, français, anglais)
+  • Conformité totale avec les réglementations sanitaires
+
+Notes orateur : Motabari3 se distingue par son approche innovante et sa parfaite adaptation au contexte marocain.
+
+Slide 9 : Démonstration
+  • Interface donneur : inscription et prise de rendez-vous
+  • Interface hôpital : demande de sang et suivi des stocks
+  • Système de scan QR code pour l'identification
+  • Tableau de bord administratif et statistiques
+  • Système d'alerte en cas d'urgence
+
+Notes orateur : Nous allons maintenant vous montrer comment fonctionne concrètement notre plateforme à travers ses principales interfaces.
+
+Slide 10 : Impact Social et Économique
+  • Augmentation du nombre de donneurs réguliers (+30% estimé)
+  • Réduction du temps de réponse aux urgences sanguines (-60%)
+  • Optimisation des stocks et réduction du gaspillage (-25%)
+  • Amélioration de la traçabilité et de la sécurité des dons
+  • Sensibilisation accrue au don de sang dans la population
+
+Notes orateur : Au-delà de l'innovation technologique, Motabari3 a un impact direct sur la santé publique et l'efficacité du système de santé.
+
+Slide 11 : Modèle Économique
+  • Abonnement mensuel pour les hôpitaux et cliniques privées
+  • Version gratuite pour les établissements publics (financée par partenariats)
+  • Services premium pour les grandes structures hospitalières
+  • Partenariats avec le Ministère de la Santé et organisations internationales
+  • Revenus publicitaires ciblés (produits de santé, assurances)
+
+Notes orateur : Notre modèle économique hybride assure la pérennité du service tout en maintenant l'accessibilité pour tous les acteurs.
+
+Slide 12 : Roadmap
+  • Phase 1 (Actuelle) : Lancement de la plateforme web avec fonctionnalités de base
+  • Phase 2 (6 mois) : Application mobile pour donneurs et intégration IoT pour suivi des stocks
+  • Phase 3 (12 mois) : Intelligence artificielle pour prédiction des besoins et optimisation logistique
+  • Phase 4 (18 mois) : Expansion régionale (Maghreb) et nouvelles fonctionnalités avancées
+  • Phase 5 (24 mois) : Plateforme panafricaine de gestion des ressources sanguines
+
+Notes orateur : Notre vision s'étend bien au-delà du produit actuel, avec une feuille de route ambitieuse mais réaliste.
+
+Slide 13 : Équipe et Partenaires
+  • Équipe pluridisciplinaire : développeurs, experts en santé, data scientists
+  • Partenariat avec le Centre National de Transfusion Sanguine
+  • Collaboration avec l'Association Marocaine des Donneurs de Sang
+  • Soutien technique de [Nom de votre école/université]
+  • Mentorat par des experts en e-santé internationaux
+
+Notes orateur : La force de Motabari3 réside aussi dans son écosystème de partenaires et l'expertise de son équipe.
+
+Slide 14 : Conclusion
+  • Motabari3 : une solution innovante à un problème critique de santé publique
+  • Technologie au service de la solidarité et de l'efficacité médicale
+  • Potentiel de transformation du système de don de sang au Maroc
+  • Impact direct sur la sauvegarde de vies humaines
+  • Une innovation marocaine avec un potentiel international
+
+Notes orateur : Motabari3 n'est pas simplement un projet technologique, c'est une solution qui sauve des vies et modernise notre système de santé.
+
+Slide 15 : Appel à l'Action
+  • Investissement pour accélérer le déploiement national
+  • Partenariats stratégiques avec les acteurs de la santé
+  • Soutien institutionnel pour l'adoption par le système public
+  • Rejoignez-nous dans cette mission vitale : chaque goutte compte !
+
+Notes orateur : Nous vous invitons à devenir partie prenante de cette révolution dans le domaine du don de sang. Ensemble, nous pouvons sauver plus de vies. 
