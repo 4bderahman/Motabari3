@@ -53,4 +53,3 @@ A comprehensive blood donation management system built with the MERN stack (Mong
 Default admin credentials:
 - Email: admin@motabari3.com
 - Password: Admin@123
-

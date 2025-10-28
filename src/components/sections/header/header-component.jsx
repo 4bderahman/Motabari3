@@ -7,7 +7,7 @@ import {
   logout,
   getUser,
 } from "../../../utility-functions/auth-utils";
-import Logo from "../../../../public/blood-drop-logo.svg";
+import Logo from "/blood-drop-logo.svg";
 
 // Update the navigation array to handle both donor and hospital users
 const getNavigation = (isLoggedIn, userType) => {
@@ -146,7 +146,7 @@ const HeaderComponent = () => {
               }}
               className={({ isActive }) => `
                 text-sm font-medium lg:transition leading-6 px-3 py-2 rounded-rsm
-                relative 
+                relative
                 ${
                   !item.auth
                     ? "after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 hover:after:w-full after:transition-all after:duration-300"
@@ -235,7 +235,7 @@ const HeaderComponent = () => {
                       setMobileMenuOpen(false);
                     }}
                     className={({ isActive }) => `
-                      -mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 
+                      -mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7
                       text-gray-900 hover:bg-gray-50
                       ${item.secondLast && "border border-dark/[.5]"}
                       ${item.last && "bg-red text-white hover:bg-red/90"}
